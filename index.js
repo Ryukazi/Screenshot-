@@ -4,8 +4,8 @@ import axios from "axios";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// YOUR ORIGINAL API KEY
-const API_KEY = "681488c7c163461b8d6eadd5755bb003";
+// YOUR APIFLASH ACCESS KEY
+const API_KEY = "b1ba64a7f07d446b9e032d6212365886";
 
 app.get("/api/screenshot", async (req, res) => {
   const site = req.query.site;
@@ -15,21 +15,29 @@ app.get("/api/screenshot", async (req, res) => {
   }
 
   try {
-    const screenshotUrl = `https://screenshot.abstractapi.com/v1/?api_key=${API_KEY}&url=${encodeURIComponent(site)}`;
+    // APIFLASH DIRECT IMAGE URL
+    const screenshotUrl =
+      `https://api.apiflash.com/v1/urltoimage?access_key=${API_KEY}` +
+      `&wait_until=page_loaded&url=${encodeURIComponent(site)}`;
 
-    // Fetch screenshot as binary
+    // Fetch image as buffer
     const response = await axios.get(screenshotUrl, {
       responseType: "arraybuffer",
     });
 
-    // Set correct headers
-    res.set("Content-Type", "image/png");
+    // Try detecting image type (PNG or JPEG)
+    const contentType =
+      response.headers["content-type"] || "image/png";
+
+    res.set("Content-Type", contentType);
     res.send(response.data);
 
   } catch (err) {
-    console.error(err);
+    console.error("Screenshot Error:", err.message);
     res.status(500).json({ error: "Failed to generate screenshot" });
   }
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`Server running on port ${PORT}`)
+);
